@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Neo4j Relationship Finder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background: #f9f9f9;
+    }
+    form {
+      margin-bottom: 2rem;
+    }
+    input {
+      padding: 0.5rem;
+      margin-right: 1rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+    }
+    .result-card {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
+      max-width: 600px;
+    }
+    .relationship {
+      font-weight: bold;
+      margin: 0.5rem 0;
+    }
+    .description {
+      margin-top: 1rem;
+      font-style: italic;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>Relationship Finder</h1>
+  <form id="relationship-form">
+    <label>Person 1: <input type="text" id="person1" required></label>
+    <label>Person 2: <input type="text" id="person2" required></label>
+    <button type="submit">Find Relationship</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    document.getElementById("relationship-form").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const p1 = document.getElementById("person1").value;
+      const p2 = document.getElementById("person2").value;
+
+      document.getElementById("result").innerHTML = "Loading...";
+
+      try {
+        const res = await fetch(`http://localhost:3000/relationship?person1=${encodeURIComponent(p1)}&person2=${encodeURIComponent(p2)}`);
+        const data = await res.json();
+
+        if (!data.relationships || data.relationships.length === 0) {
+          document.getElementById("result").innerHTML = "<p>No relationship found.</p>";
+          return;
+        }
+
+        const rel = data.relationships[0];
+        document.getElementById("result").innerHTML = `
+          <div class="result-card">
+            <div><strong>${rel.fromName}</strong> — ${rel.fromBio}</div>
+            <div class="relationship">${rel.relationshipLabel} (${rel.relationshipType})</div>
+            <div><strong>${rel.toName}</strong> — ${rel.toBio}</div>
+            <div class="description">${rel.relationshipDescription || "No description provided."}</div>
+          </div>
+        `;
+      } catch (error) {
+        console.error(error);
+        document.getElementById("result").innerHTML = "<p>Error fetching relationship.</p>";
+      }
+    });
+  </script>
+</body>
+</html>
